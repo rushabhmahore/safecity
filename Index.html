@@ -1,0 +1,166 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SafeStreets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#070d1a;--card:#0f1a30;--muted:#94a3b8;--sub:#64748b;--line:rgba(255,255,255,.1);--warn:#f59e0b;--danger:#ef4444;--blue:#60a5fa;--ok:#22c55e}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden;background:var(--bg);color:#e2e8f0;font-family:"DM Sans",sans-serif}
+    button,input,textarea{font:inherit}
+    #app{height:100%}
+    .icon{width:16px;height:16px;display:inline-flex;vertical-align:middle}
+    .hdr{position:fixed;top:0;left:0;right:0;height:56px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,13,26,.92);border-bottom:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px);z-index:40}
+    .brand{display:flex;align-items:center;gap:9px}
+    .logo{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--warn),var(--danger))}
+    .title{font-family:"Syne",sans-serif;font-weight:800;font-size:16px;line-height:1}
+    .city{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+    .tabs{display:flex;gap:4px;padding:4px;border-radius:10px;background:rgba(255,255,255,.05)}
+    .tab{border:0;background:transparent;color:var(--sub);cursor:pointer;padding:6px 12px;border-radius:7px;display:flex;align-items:center;gap:6px;font-size:13px}
+    .tab.on{color:var(--warn);background:rgba(245,158,11,.15);font-weight:600}
+    .live{font-size:11px;color:#475569;display:flex;align-items:center;gap:5px}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+    .main{height:100%;padding-top:56px}
+    .map{position:relative;height:100%;overflow:hidden}
+    .mapbg{position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,#0f1a2e 0%,#070d1a 100%)}
+    .grid{position:absolute;inset:0;opacity:.12}
+    .filters{position:absolute;left:12px;right:12px;top:12px;z-index:10;display:flex;flex-direction:column;gap:8px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{border:1px solid var(--line);border-radius:20px;padding:5px 11px;cursor:pointer;background:rgba(7,13,26,.8);color:var(--muted);font-size:12px;display:flex;align-items:center;gap:5px}
+    .chip.time.on{border-color:var(--warn);color:var(--warn);background:rgba(245,158,11,.15)}
+    .chip.hz.on{border-color:var(--blue);color:var(--blue);background:rgba(96,165,250,.12)}
+    .pin{position:absolute;transform:translate(-50%,-50%);border:0;background:transparent;cursor:pointer;padding:0;--c:#6b7280}
+    .pin::before{content:"";position:absolute;inset:-8px;border:1.5px solid var(--c);border-radius:50%;opacity:.4;animation:pulse 2s ease-out infinite}
+    .pin span{display:block;border-radius:50%;background:var(--c);border:2px solid rgba(255,255,255,.3)}
+    .pin.h span{width:16px;height:16px;box-shadow:0 0 12px var(--c)}
+    .pin.m span{width:12px;height:12px;box-shadow:0 0 8px var(--c)}
+    .pin.l span{width:9px;height:9px;box-shadow:0 0 6px var(--c)}
+    .tip{position:absolute;left:12px;right:12px;bottom:92px;z-index:12;background:rgba(15,26,48,.96);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+    .tip-top{display:flex;justify-content:space-between;gap:8px}
+    .loc{font-weight:600;font-size:14px}.area{font-size:12px;color:var(--sub);margin-top:2px}
+    .pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+    .pill{font-size:11px;padding:3px 10px;border-radius:12px;border:1px solid transparent;display:flex;align-items:center;gap:4px}
+    .x{border:0;background:rgba(255,255,255,.06);color:var(--sub);width:28px;height:28px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+    .stats{position:absolute;left:12px;right:12px;bottom:18px;display:flex;gap:8px;z-index:10}
+    .stat{flex:1;background:rgba(15,26,48,.86);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:9px 10px}
+    .sv{font-size:13px;font-weight:600;margin-top:4px}.sl{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+    .feed{height:100%;overflow:auto;padding:16px 12px 104px}
+    .feed h2{font-family:"Syne",sans-serif;font-size:20px}.feed p{font-size:13px;color:var(--sub);margin:4px 0 16px}
+    .card{border-radius:14px;padding:12px 14px;margin-bottom:10px;background:rgba(15,26,48,.72);border:1px solid rgba(255,255,255,.06)}
+    .card.new{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2)}
+    .ct{display:flex;justify-content:space-between;gap:10px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+    .nm{font-weight:600;font-size:14px}.ar{font-size:12px;color:var(--sub);margin-bottom:8px}
+    .newb{font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--warn)}
+    .up{min-width:48px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .up:hover{color:var(--warn);background:rgba(245,158,11,.1)}
+    .fab{position:fixed;right:18px;bottom:24px;z-index:30;border:0;border-radius:16px;padding:14px 22px;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--warn),var(--danger));color:#fff;font-weight:700;font-family:"Syne",sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(245,158,11,.35)}
+    .ov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
+    .sheet{width:100%;max-width:520px;max-height:90vh;overflow:auto;background:#0c1628;border:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;padding:22px 18px 30px}
+    .handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin:0 auto 16px}
+    .mh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+    .mt{font-family:"Syne",sans-serif;font-size:20px;font-weight:800}.ms{font-size:12px;color:var(--sub);margin-top:2px}
+    .steps{display:flex;align-items:center;gap:2px;margin-bottom:16px}.seg{height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,.12)}.seg.on{background:var(--warn)}.st{font-size:12px;color:var(--muted);margin-left:8px;white-space:nowrap}
+    .lbl{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .inp,.ta{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#e2e8f0;outline:none}
+    .ta{resize:none}.gps{margin-top:8px;width:100%;padding:9px 14px;border-radius:10px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:var(--blue);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}.gps.ok{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.1);color:#86efac}
+    .help{font-size:13px;color:var(--muted);margin-bottom:16px}.grp{margin-bottom:18px}.gt{font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:8px}.ln{width:16px;height:1.5px;background:currentColor;border-radius:1px}
+    .hzgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .hz{padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);text-align:left;cursor:pointer;color:var(--muted)}.hzlb{font-size:12px;line-height:1.3;margin-top:6px}
+    .anon{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);margin-bottom:18px}.anon.on{border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.06)}.al{display:flex;align-items:center;gap:10px}.at{font-size:14px;font-weight:600;color:var(--muted)}.at.on{color:#86efac}.as{font-size:11px;color:#475569;margin-top:2px}
+    .tg{width:44px;height:24px;border-radius:12px;border:0;position:relative;background:rgba(255,255,255,.12);cursor:pointer}.tg.on{background:var(--ok)}.kn{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}.tg.on .kn{left:23px}
+    .sum{border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);padding:12px 14px;font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:18px}
+    .sub{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--warn),var(--danger));color:#fff;font-weight:700;font-family:"Syne",sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+    .nav{display:flex;gap:10px;margin-top:18px}.nb{flex:1;padding:12px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px}.bk{border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted)}.nx{border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.15);color:var(--warn);font-weight:600}
+    .ok{text-align:center;padding:28px 0}.okb{width:72px;height:72px;border-radius:50%;margin:0 auto 14px;border:2px solid rgba(245,158,11,.3);background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(239,68,68,.2));display:grid;place-items:center;color:var(--warn)}
+    .ok h4{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;margin-bottom:8px}.ok p{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:20px}
+    .okr{border-radius:12px;border:1px solid rgba(34,197,94,.2);background:rgba(34,197,94,.08);color:#86efac;padding:12px 14px;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:18px}.okd{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+    .okbtn{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--warn),var(--danger));color:#fff;font-weight:700;font-family:"Syne",sans-serif;cursor:pointer}
+    @keyframes pulse{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.2);opacity:0}}
+    @media (max-width:860px){.live{display:none}.hzgrid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const DUMMY_REPORTS = [
+      { id: 1, location: "Koramangala 5th Block", area: "Near Forum Mall junction", time: "11:32", timeCategory: "late", hazard: "infrastructure", tag: "Working but Dim Light", votes: 14, color: "#f59e0b" },
+      { id: 2, location: "BTM Layout, Stage 2", area: "Behind Udupi Garden", time: "21:45", timeCategory: "late", hazard: "social", tag: "Lonely Road (Isolated)", votes: 23, color: "#ef4444" },
+      { id: 3, location: "Indiranagar 100ft Road", area: "Near HDFC Bank lane", time: "20:10", timeCategory: "evening", hazard: "animals", tag: "Aggressive Stray Dogs", votes: 9, color: "#f97316" },
+      { id: 4, location: "Jayanagar 4th Block", area: "South End Circle walkway", time: "22:55", timeCategory: "late", hazard: "social", tag: "Groups Staring/Loitering", votes: 31, color: "#ef4444" },
+      { id: 5, location: "Whitefield, ITPL Road", area: "Service road near Prestige", time: "19:30", timeCategory: "evening", hazard: "infrastructure", tag: "Narrow/Blind Spot", votes: 7, color: "#3b82f6" },
+      { id: 6, location: "HSR Layout, Sector 2", area: "27th Main Road end", time: "18:00", timeCategory: "day", hazard: "animals", tag: "Aggressive Stray Dogs", votes: 12, color: "#f97316" },
+      { id: 7, location: "Rajajinagar, 1st Block", area: "Old BEL Road underpass", time: "23:10", timeCategory: "late", hazard: "infrastructure", tag: "Broken Light", votes: 19, color: "#8b5cf6" },
+      { id: 8, location: "Banashankari, 3rd Stage", area: "Temple street extension", time: "21:00", timeCategory: "late", hazard: "infrastructure", tag: "Garbage/Broken Road", votes: 6, color: "#10b981" }
+    ];
+    const PIN_POSITIONS=[{id:1,x:52,y:44,intensity:"h"},{id:2,x:43,y:58,intensity:"h"},{id:3,x:67,y:32,intensity:"m"},{id:4,x:38,y:68,intensity:"h"},{id:5,x:75,y:25,intensity:"l"},{id:6,x:60,y:72,intensity:"m"},{id:7,x:28,y:40,intensity:"h"},{id:8,x:48,y:80,intensity:"l"}];
+    const HAZARD_CATEGORIES=[
+      {group:"Infrastructure",color:"#f59e0b",type:"infrastructure",items:[{id:"dim_light",label:"Working but Dim Light",icon:"zap"},{id:"broken_light",label:"Broken Light",icon:"zap-off"},{id:"garbage_road",label:"Garbage / Broken Road",icon:"trash-2"},{id:"narrow_spot",label:"Narrow / Blind Spot",icon:"navigation"}]},
+      {group:"Social / People",color:"#ef4444",type:"social",items:[{id:"lonely_road",label:"Lonely Road (Isolated)",icon:"moon"},{id:"loitering",label:"Groups Staring / Loitering",icon:"users"},{id:"outsider",label:"Feeling like an Outsider",icon:"eye"}]},
+      {group:"Animals",color:"#f97316",type:"animals",items:[{id:"stray_dogs",label:"Aggressive Stray Dogs",icon:"dog"}]}
+    ];
+    const TIME_FILTERS=["All","Daytime","Evening","Late Night (9 PM+)"];
+    const HAZARD_FILTERS=["All","Infrastructure","Social/People","Animals"];
+    const S={view:"map",showModal:false,modalStep:1,timeFilter:"All",hazardFilter:"All",selectedPinId:null,reports:DUMMY_REPORTS.map(r=>({...r})),submitted:false,formLocation:"",formLocationFetched:false,formTime:now(),selectedHazards:[],formDesc:"",isAnonymous:true};
+    const now=()=>{const d=new Date();return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
+    const e=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
+    const ic=(n,c="icon")=>`<i data-lucide="${n}" class="${c}"></i>`;
+    const pinColor=r=>!r?"#6b7280":r.hazard==="social"?"#ef4444":r.hazard==="animals"?"#f97316":"#f59e0b";
+    const infer=t=>{const h=Number(String(t||"00:00").split(":")[0]);if(!Number.isFinite(h))return"late";if(h>=21||h<5)return"late";if(h>=17)return"evening";return"day"};
+    const sel=()=>S.reports.find(r=>r.id===S.selectedPinId)||null;
+    const filt=()=>S.reports.filter(r=>{
+      const tm=S.timeFilter==="All"||(S.timeFilter==="Daytime"&&r.timeCategory==="day")||(S.timeFilter==="Evening"&&r.timeCategory==="evening")||(S.timeFilter==="Late Night (9 PM+)"&&r.timeCategory==="late");
+      const hm=S.hazardFilter==="All"||(S.hazardFilter==="Infrastructure"&&r.hazard==="infrastructure")||(S.hazardFilter==="Social/People"&&r.hazard==="social")||(S.hazardFilter==="Animals"&&r.hazard==="animals");
+      return tm&&hm;
+    });
+    const openModal=()=>{S.modalStep=1;S.formLocation="";S.formLocationFetched=false;S.formTime=now();S.selectedHazards=[];S.formDesc="";S.isAnonymous=true;S.submitted=false;S.showModal=true};
+    const togHaz=id=>{S.selectedHazards=S.selectedHazards.includes(id)?S.selectedHazards.filter(h=>h!==id):[...S.selectedHazards,id]};
+    const submit=()=>{const all=HAZARD_CATEGORIES.flatMap(g=>g.items.map(i=>({...i,t:g.type})));const first=all.find(i=>S.selectedHazards.includes(i.id));const hazard=first?first.t:"infrastructure";const colors={infrastructure:"#f59e0b",social:"#ef4444",animals:"#f97316"};const id=Math.max(...S.reports.map(r=>r.id))+1;const nr={id,location:S.formLocation||"Your Location, Bangalore",area:"Just reported",time:S.formTime||now(),timeCategory:infer(S.formTime),hazard,tag:first?first.label:"Safety Concern",votes:0,color:colors[hazard],isNew:true};S.reports=[nr,...S.reports];S.selectedPinId=id;S.submitted=true};
+    const up=id=>{S.reports=S.reports.map(r=>r.id===id?{...r,votes:r.votes+1}:r)};
+    const top=()=>{const b={};S.reports.forEach(r=>b[r.tag]=(b[r.tag]||0)+1);return Object.keys(b).sort((a,z)=>b[z]-b[a])[0]||"N/A"};
+
+    const mapBg=()=>`<div class="mapbg"></div><svg class="grid" viewBox="0 0 1200 800" preserveAspectRatio="none"><defs><pattern id="g" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="#4a90d9" stroke-width="0.5"/></pattern><pattern id="mg" width="180" height="180" patternUnits="userSpaceOnUse"><rect width="180" height="180" fill="url(#g)"/><path d="M 180 0 L 0 0 0 180" fill="none" stroke="#4a90d9" stroke-width="1.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#mg)"/><line x1="0" y1="30%" x2="100%" y2="70%" stroke="#4a90d9" stroke-width="2" opacity="0.4"/><line x1="20%" y1="0" x2="80%" y2="100%" stroke="#4a90d9" stroke-width="1.5" opacity="0.3"/></svg><div class="map-glow" style="left:35%;top:40%;width:200px;height:200px;background:radial-gradient(circle, rgba(239,68,68,.15) 0%, transparent 70%)"></div><div class="map-glow" style="left:65%;top:30%;width:150px;height:150px;background:radial-gradient(circle, rgba(245,158,11,.12) 0%, transparent 70%)"></div><div class="map-glow" style="left:45%;top:65%;width:180px;height:180px;background:radial-gradient(circle, rgba(249,115,22,.1) 0%, transparent 70%)"></div><div class="map-label" style="left:48%;top:42%">Koramangala</div><div class="map-label" style="left:38%;top:58%">BTM Layout</div><div class="map-label" style="left:64%;top:30%">Indiranagar</div><div class="map-label" style="left:33%;top:66%">Jayanagar</div><div class="map-label" style="left:56%;top:70%">HSR Layout</div>`;
+    const mapPins=()=>PIN_POSITIONS.map((p,i)=>{const r=S.reports[i]||DUMMY_REPORTS[i]||null;return `<button class="pin ${p.intensity}" style="left:${p.x}%;top:${p.y}%;--c:${pinColor(r)}" data-a="pin" data-id="${r?r.id:""}" ${r?"":"disabled"}><span></span></button>`}).join("");
+    const mapFilters=()=>`<div class="filters"><div class="chips">${TIME_FILTERS.map(f=>`<button class="chip time ${S.timeFilter===f?"on":""}" data-a="time" data-v="${e(f)}">${f==="Daytime"?ic("sun","icon"):(f.includes("Late")?ic("moon","icon"):"")}${e(f)}</button>`).join("")}</div><div class="chips">${HAZARD_FILTERS.map(f=>`<button class="chip hz ${S.hazardFilter===f?"on":""}" data-a="haz" data-v="${e(f)}">${e(f)}</button>`).join("")}</div></div>`;
+    const pinTip=()=>{const r=sel();if(!r)return"";const c=pinColor(r);return `<div class="tip"><div class="tip-top"><div><div class="loc">${e(r.location)}</div><div class="area">${e(r.area)}</div><div class="pills"><span class="pill" style="background:${c}22;color:${c};border-color:${c}44">${e(r.tag)}</span><span class="pill" style="background:rgba(255,255,255,.04);color:#64748b;border-color:rgba(255,255,255,.06)">${ic("clock-3","icon")} ${e(r.time)}</span></div></div><button class="x" data-a="clr">${ic("x","icon")}</button></div></div>`};
+    const stats=()=>`<div class="stats"><div class="stat">${ic("moon")}<div class="sv">${S.reports.filter(r=>r.timeCategory==="late").length} reports</div><div class="sl">Tonight</div></div><div class="stat">${ic("zap")}<div class="sv">${e(top())}</div><div class="sl">Top Hazard</div></div><div class="stat">${ic("flame")}<div class="sv">BTM Layout</div><div class="sl">Hot Zone</div></div></div>`;
+    const map=()=>`<div class="map">${mapBg()}${mapFilters()}${mapPins()}${pinTip()}${stats()}</div>`;
+    const feed=()=>{const list=filt();return `<div class="feed"><h2>Community Reports</h2><p>Real-time reports from your neighbours. Upvote to verify unsafe spots.</p>${list.length?list.map(r=>`<div class="card ${r.isNew?"new":""}"><div class="ct"><div style="flex:1"><div class="row">${ic("map-pin")}<span class="nm">${e(r.location)}</span>${r.isNew?'<span class="newb">NEW</span>':""}</div><div class="ar">${e(r.area)}</div><div class="pills"><span class="pill" style="background:${r.color}18;color:${r.color};border-color:${r.color}33">${e(r.tag)}</span><span class="pill" style="background:rgba(255,255,255,.04);color:#64748b;border-color:rgba(255,255,255,.06)">${ic("clock-3","icon")} ${e(r.time)}</span></div></div><button class="up" data-a="up" data-id="${r.id}">${ic("thumbs-up")}<span>${r.votes}</span></button></div></div>`).join(""):'<div class="card" style="text-align:center;color:#64748b">No reports match the selected filters.</div>'}</div>`};
+    const steps=()=>`<div class="steps">${[1,2,3].map(n=>`<div class="seg ${n<=S.modalStep?"on":""}"></div>`).join("")}<span class="st">Step ${S.modalStep} of 3</span></div>`;
+    const st1=()=>`<div><div style="margin-bottom:16px"><label class="lbl">Location</label><input class="inp" data-f="loc" value="${e(S.formLocation)}" placeholder="Enter street or area name..."/><button class="gps ${S.formLocationFetched?"ok":""}" data-a="gps">${ic("navigation")} ${S.formLocationFetched?"Location fetched":"Use Current Location (GPS)"}</button></div><div><label class="lbl">Time of Incident</label><input class="inp" type="time" data-f="time" value="${e(S.formTime)}"/></div></div>`;
+    const st2=()=>`<div><p class="help">Select all that apply. Your specificity helps authorities act faster.</p>${HAZARD_CATEGORIES.map(g=>`<div class="grp"><div class="gt" style="color:${g.color}"><span class="ln"></span>${e(g.group)}</div><div class="hzgrid">${g.items.map(i=>{const on=S.selectedHazards.includes(i.id);return `<button class="hz" data-a="th" data-id="${i.id}" style="border-color:${on?g.color+"66":"rgba(255,255,255,.08)"};background:${on?g.color+"14":"rgba(255,255,255,.03)"};color:${on?"#e2e8f0":"#94a3b8"}">${ic(i.icon)}<div class="hzlb">${e(i.label)}</div></button>`}).join("")}</div></div>`).join("")}</div>`;
+    const st3=()=>`<div><div style="margin-bottom:16px"><label class="lbl">Describe the Incident <span style="color:#334155">(Optional)</span></label><textarea class="ta" rows="4" data-f="desc" placeholder="Any additional context that might help...">${e(S.formDesc)}</textarea></div><div class="anon ${S.isAnonymous?"on":""}"><div class="al">${S.isAnonymous?ic("eye-off"):ic("eye")}<div><div class="at ${S.isAnonymous?"on":""}">${S.isAnonymous?"Submitting Anonymously":"Submitting with Profile"}</div><div class="as">${S.isAnonymous?"Your identity is fully protected":"Your username will be visible"}</div></div></div><button class="tg ${S.isAnonymous?"on":""}" data-a="anon"><span class="kn"></span></button></div><div class="sum"><div>[Location] ${e(S.formLocation||"Location not set")}</div><div>[Time] ${e(S.formTime||"--:--")}</div><div>[Hazards] ${S.selectedHazards.length} selected</div></div><button class="sub" data-a="submit">${ic("send")} Submit to Community and Authorities</button></div>`;
+    const ok=()=>`<div class="ok"><div class="okb">${ic("shield-check")}</div><h4>Thank you for speaking up.</h4><p>Your report has been added to the community map and forwarded to BBMP and local authorities.${S.isAnonymous?" Your identity is protected.":""}</p><div class="okr"><span class="okd"></span> Pin added to the live map</div><button class="okbtn" data-a="vf">View Community Feed</button></div>`;
+    const modalBody=()=>{if(S.submitted)return ok();const c=S.modalStep===1?st1():S.modalStep===2?st2():st3();return `${steps()}${c}<div class="nav">${S.modalStep>1?`<button class="nb bk" data-a="prev">${ic("chevron-left")} Back</button>`:""}${S.modalStep<3?`<button class="nb nx" data-a="next">Next ${ic("chevron-right")}</button>`:""}</div>`};
+    const modal=()=>S.showModal?`<div class="ov" data-a="ov"><div class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="mh"><div><h3 class="mt">${S.submitted?"Report Submitted":"Report Unsafe Spot"}</h3>${S.submitted?"":'<p class="ms">Your report helps keep everyone safer.</p>'}</div><button class="x" data-a="close">${ic("x")}</button></div>${modalBody()}</div></div>`:"";
+    const app=()=>`<header class="hdr"><div class="brand"><div class="logo">${ic("shield")}</div><div><div class="title">SafeStreets</div><div class="city">Bangalore</div></div></div><div class="tabs"><button class="tab ${S.view==="map"?"on":""}" data-a="view" data-v="map">${ic("activity")} Map</button><button class="tab ${S.view==="feed"?"on":""}" data-a="view" data-v="feed">${ic("radio")} Feed</button></div><div class="live"><span class="dot"></span>${S.reports.length} active reports</div></header><div class="main">${S.view==="map"?map():feed()}</div>${S.showModal?"":`<button class="fab" data-a="open">${ic("alert-triangle")} Report Unsafe Spot</button>`}${modal()}`;
+    function render(){document.getElementById("app").innerHTML=app();if(window.lucide&&window.lucide.createIcons)window.lucide.createIcons();}
+    function act(a,el){
+      if(a==="view"){S.view=el.dataset.v||"map";return 1}
+      if(a==="time"){S.timeFilter=el.dataset.v||"All";return 1}
+      if(a==="haz"){S.hazardFilter=el.dataset.v||"All";return 1}
+      if(a==="pin"){const id=Number(el.dataset.id||0);if(!id)return 0;S.selectedPinId=id;return 1}
+      if(a==="clr"){S.selectedPinId=null;return 1}
+      if(a==="open"){openModal();return 1}
+      if(a==="close"){S.showModal=false;return 1}
+      if(a==="ov"){if(el.classList.contains("ov")){S.showModal=false;return 1}return 0}
+      if(a==="gps"){S.formLocation="Near Koramangala 5th Block Junction";S.formLocationFetched=true;return 1}
+      if(a==="th"){if(!el.dataset.id)return 0;togHaz(el.dataset.id);return 1}
+      if(a==="next"){S.modalStep=Math.min(3,S.modalStep+1);return 1}
+      if(a==="prev"){S.modalStep=Math.max(1,S.modalStep-1);return 1}
+      if(a==="anon"){S.isAnonymous=!S.isAnonymous;return 1}
+      if(a==="submit"){submit();return 1}
+      if(a==="vf"){S.showModal=false;S.view="feed";S.submitted=false;return 1}
+      if(a==="up"){const id=Number(el.dataset.id||0);if(!id)return 0;up(id);return 1}
+      return 0;
+    }
+    document.addEventListener("click",ev=>{const t=ev.target.closest("[data-a]");if(!t)return;if(act(t.dataset.a,t))render();});
+    document.addEventListener("input",ev=>{const f=ev.target.dataset.f;if(!f)return;if(f==="loc"){S.formLocation=ev.target.value;S.formLocationFetched=false;}if(f==="time")S.formTime=ev.target.value;if(f==="desc")S.formDesc=ev.target.value;});
+    render();
+  </script>
+</body>
+</html>
